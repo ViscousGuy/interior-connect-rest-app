@@ -16,8 +16,26 @@ Once you have Go set up, use the following command in your project's root direct
 go get -u
 ```
 
+**Copy the example environment file and configure:**
+
+```bash
+cp .env.example .env
+```
+
 # Run the Project
 
 ```bash
 go run main.go
 ```
+
+# Routes
+
+The application defines the following routes:
+
+**Basic Routes**
+
+- **GET /:** Renders the home page.
+
+**Furniture Routes (grouped)**
+
+- **GET /furniture:** Displays a list of all furnitures.
