@@ -7,5 +7,6 @@ import (
 
 func init() {
 	web.Router("/furniture", &controllers.FurnitureController{}, "get:GetAllFurniture") 
+	web.Router("/furniture/:id", &controllers.FurnitureController{}, "get:GetFurniture") // New route
 	web.Router("/material" ,&controllers.MaterialController{},"get:GetAllMaterial")
 }

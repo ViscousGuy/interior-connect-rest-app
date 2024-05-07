@@ -4,6 +4,8 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"strconv"
+	
 
 	"github.com/ViscousGuy/interior-connect-rest-app/models"
 	"github.com/astaxie/beego/orm"
@@ -56,3 +58,30 @@ func (fc *FurnitureController) GetAllFurniture() {
 	fc.ServeJSON()
 }
 
+func (fc *FurnitureController) GetFurniture() {
+	// Get the ID from the URL
+	idStr := fc.Ctx.Input.Param(":id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		fc.Ctx.Output.SetStatus(http.StatusBadRequest)
+		fc.Data["json"] = map[string]string{"error": "invalid ID"}
+		fc.ServeJSON()
+		return
+	}
+
+	// Database operation
+	o := orm.NewOrm()
+	furniture := models.Furniture{Id: id}
+	err = o.Read(&furniture)
+	if err != nil {
+		log.Printf("Database error: %s", err)
+		fc.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		fc.Data["json"] = map[string]string{"error": "Database error: " + err.Error()}
+		fc.ServeJSON()
+		return
+	}
+
+	// Success response
+	fc.Data["json"] = furniture
+	fc.ServeJSON()
+}
