@@ -41,3 +41,5 @@ The application defines the following routes:
 - **GET /furnitures:** Displays a list of all furnitures.
 - **GET /furnitures/:slug** Displays a furniture.
 - **GET /materials:** Displays a list of all materials for a furniture.
+- **GET /contractors:** Displays a list of all contractors.
+- **GET /contractors/:slug:** Displays a contractor.
