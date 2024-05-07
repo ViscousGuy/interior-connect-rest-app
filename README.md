@@ -36,7 +36,7 @@ The application defines the following routes:
 
 - **GET /:** Renders the home page.
 
-**Furniture Routes (grouped)**
+**Routes (grouped)**
 
 - **GET /furnitures:** Displays a list of all furnitures.
 - **GET /furnitures/:slug** Displays a furniture.
