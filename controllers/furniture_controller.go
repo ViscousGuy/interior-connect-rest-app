@@ -56,3 +56,34 @@ func (fc *FurnitureController) GetAllFurniture() {
 	fc.ServeJSON()
 }
 
+func (fc *FurnitureController) GetFurnitureBySlug() {
+    slug := fc.Ctx.Input.Param(":slug")
+	log.Printf("Fetching furniture with slug: %s", slug)
+    // Database operation
+    o := orm.NewOrm()
+    var furniture models.Furniture
+    err := o.QueryTable(new(models.Furniture)).Filter("slug", slug).One(&furniture)
+    if err != nil {
+        log.Printf("Database error: %s", err)
+        fc.Ctx.Output.SetStatus(http.StatusInternalServerError)
+        fc.Data["json"] = map[string]string{"error": "Database error: " + err.Error()}
+        fc.ServeJSON()
+        return
+    }
+
+    if furniture.Id == 0 {
+        fc.Ctx.Output.SetStatus(http.StatusNotFound)
+        fc.Data["json"] = map[string]string{"error": "Furniture not found"}
+        fc.ServeJSON()
+        return
+    }
+
+    fc.Data["json"] = furniture
+    fc.ServeJSON()
+
+}
+
+
+
+
+
