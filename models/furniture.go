@@ -18,10 +18,7 @@ type Furniture struct {
 
 func (f *Furniture) TableName() string {
     // Explicitly specifying the table name as "Furniture"
- 
-    
     // Our databse has "furniture" (with lower case)
-
     return "furniture"   // changing it into lowercase
 }
 
