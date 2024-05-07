@@ -14,7 +14,7 @@ type FurnitureController struct {
 	web.Controller
 }
 
-func (fc *FurnitureController) GetAllFurniture() {
+func (fc *FurnitureController) GetAllFurnitures() {
 	// Parse query parameters for pagination
 	page, err := fc.GetInt("page", 1)
 	if err != nil || page < 1 {
@@ -58,7 +58,6 @@ func (fc *FurnitureController) GetAllFurniture() {
 
 func (fc *FurnitureController) GetFurnitureBySlug() {
     slug := fc.Ctx.Input.Param(":slug")
-	log.Printf("Fetching furniture with slug: %s", slug)
     // Database operation
     o := orm.NewOrm()
     var furniture models.Furniture

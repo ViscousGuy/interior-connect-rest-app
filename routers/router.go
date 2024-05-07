@@ -6,9 +6,11 @@ import (
 )
 
 func init() {
-	web.Router("/furnitures", &controllers.FurnitureController{}, "get:GetAllFurniture") 
+	web.Router("/furnitures", &controllers.FurnitureController{}, "get:GetAllFurnitures") 
 	web.Router("/furnitures/:slug", &controllers.FurnitureController{}, "get:GetFurnitureBySlug")
-	web.Router("/materials", &controllers.MaterialController{},"get:GetAllMaterial")
 	web.Router("/contractors", &controllers.ContractorController{},"get:GetAllContractors")
 	web.Router("/contractors/:slug", &controllers.ContractorController{},"get:GetContractorBySlug")
+	web.Router("/projects", &controllers.ProjectController{},"get:GetAllProjects")
+	web.Router("/projects/:slug", &controllers.ProjectController{},"get:GetProjectBySlug")
+	web.Router("/materials", &controllers.MaterialController{},"get:GetAllMaterials")
 }

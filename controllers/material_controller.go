@@ -14,7 +14,7 @@ type MaterialController struct {
 	web.Controller
 }
 
-func (fc *MaterialController) GetAllMaterial() {
+func (fc *MaterialController) GetAllMaterials() {
 	// Parse query parameters for pagination
 	page, err := fc.GetInt("page", 1)
 	if err != nil || page < 1 {
