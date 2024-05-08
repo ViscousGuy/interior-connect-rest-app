@@ -12,6 +12,7 @@ type Project struct {
     Display       bool   `orm:"null"`
     Contractor  *Contractor  `orm:"rel(fk)"`
     ProjectImage []*ProjectImage `orm:"reverse(many)"`
+    ContractorId  int     `orm:"-" json:"contractor_id"`
 }
 
 func (p *Project) TableName() string {

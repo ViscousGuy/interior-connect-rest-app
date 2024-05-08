@@ -16,6 +16,8 @@ type Contractor struct {
     Verified  bool
     Active    bool
     Display   bool
+    Furniture []*Furniture `orm:"reverse(many)"`
+    Project   []*Project `orm:"reverse(many)"`
     
 }
 

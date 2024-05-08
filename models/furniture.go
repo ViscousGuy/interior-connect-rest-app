@@ -1,3 +1,4 @@
+// models\furniture.go
 package models
 
 import "github.com/astaxie/beego/orm"
@@ -16,6 +17,7 @@ type Furniture struct {
     FurnitureColor  []*FurnitureColor `orm:"reverse(many)"` // Add this line
     FurnitureMaterial []*FurnitureMaterial `orm:"reverse(many)"` // Add this line
     FurnitureImage []*FurnitureImage `orm:"reverse(many)"` // Add this line
+    ContractorId  int     `orm:"-" json:"contractor_id"`
 }
 
 

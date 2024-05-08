@@ -58,6 +58,7 @@ func (fc *ProjectController) GetAllProjects() {
 
 
         // Extracting all info from Other Table where ProjectID used as FK
+        // ProjectImage
         for i:= range allProject{
             _ , err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID",allProject[i].Id).All(&allProject[i].ProjectImage)
 
@@ -68,7 +69,7 @@ func (fc *ProjectController) GetAllProjects() {
 				return
             }
 
-            // set the ProjectId  filed for each ProjectImage object
+            // set the ProjectId  field for each ProjectImage object
             for j:= range allProject[i].ProjectImage{
                 allProject[i].ProjectImage[j].ProjectId = allProject[i].Id
             }
