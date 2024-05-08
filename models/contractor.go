@@ -1,3 +1,4 @@
+// models\contractor.go
 package models
 
 import "github.com/astaxie/beego/orm"
@@ -15,6 +16,7 @@ type Contractor struct {
     Verified  bool
     Active    bool
     Display   bool
+    
 }
 
 func (c *Contractor) TableName() string {
