@@ -20,7 +20,7 @@ CREATE TABLE `contractor` (
   `state` VARCHAR(50),
   `mobile` VARCHAR(15),
   `email` VARCHAR(255) UNIQUE,
-  `slug` VARCHAR(255),
+  `slug` VARCHAR(255) UNIQUE,
   `pincode` VARCHAR(10),
   `verified` BOOLEAN,
   `active` BOOLEAN,
@@ -31,7 +31,7 @@ CREATE TABLE `contractor` (
 CREATE TABLE `furniture_type` (
   `id` INT AUTO_INCREMENT,
   `name` VARCHAR(20),
-  `slug` VARCHAR(255),
+  `slug` VARCHAR(255) UNIQUE,
   `display` BOOLEAN,
   PRIMARY KEY (`id`)
 );
@@ -39,7 +39,7 @@ CREATE TABLE `furniture_type` (
 CREATE TABLE `room_type` (
   `id` INT AUTO_INCREMENT,
   `name` VARCHAR(50),
-  `slug` VARCHAR(255),
+  `slug` VARCHAR(255) UNIQUE,
   `display` BOOLEAN,
   PRIMARY KEY (`id`)
 );
@@ -60,7 +60,7 @@ CREATE TABLE `furniture` (
   `dimensions` VARCHAR(50)  ,
   `price` DECIMAL(10,2),
   `contractor_id` INT,
-  `slug` VARCHAR(255),
+  `slug` VARCHAR(255) UNIQUE,
   `display` BOOLEAN,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`contractor_id`) REFERENCES `contractor`(`id`),
@@ -83,7 +83,7 @@ CREATE TABLE `project` (
   `project_name` VARCHAR(255),
   `description` VARCHAR(255),
   `city` VARCHAR(50),
-  `slug` VARCHAR(255),
+  `slug` VARCHAR(255) UNIQUE,
   `display` BOOLEAN,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`contractor_id`) REFERENCES `contractor`(`id`)
@@ -165,7 +165,7 @@ type Contractor struct {
     State     string  `orm:"size(50)"`
     Mobile    string  `orm:"size(15)"`
     Email     string  `orm:"size(255);unique"`
-    Slug      string  `orm:"size(255)"`
+    Slug      string  `orm:"size(255)";unique`
     Pincode   string  `orm:"size(10)"`
     Verified  bool
     Active    bool
@@ -175,14 +175,14 @@ type Contractor struct {
 type FurnitureType struct {
     Id      int     `orm:"auto"`
     Name    string  `orm:"size(20)"`
-    Slug    string  `orm:"size(255)"`
+    Slug    string  `orm:"size(255);unique"`
     Display bool
 }
 
 type RoomType struct {
     Id      int     `orm:"auto"`
     Name    string  `orm:"size(50)"`
-    Slug    string  `orm:"size(255)"`
+    Slug    string  `orm:"size(255);unique"`
     Display bool
 }
 
@@ -201,7 +201,7 @@ type Furniture struct {
     Dimensions       string  `orm:"size(50)"`
     Price            float64 `orm:"digits(10);decimals(2)"`
     ContractorId     int
-    Slug             string  `orm:"size(255)"`
+    Slug             string  `orm:"size(255);unique"`
     Display          bool
 }
 
@@ -217,7 +217,7 @@ type Project struct {
     ProjectName   string  `orm:"size(255)"`
     Description   string  `orm:"size(255)"`
     City          string  `orm:"size(50)"`
-    Slug          string  `orm:"size(255)"`
+    Slug          string  `orm:"size(255);unique"`
     Display       bool
 }
 
