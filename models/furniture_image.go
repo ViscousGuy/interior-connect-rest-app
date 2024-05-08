@@ -5,7 +5,8 @@ import "github.com/astaxie/beego/orm"
 type FurnitureImage struct {
     Id          int     `orm:"auto"`
     ImagePath   string  `orm:"size(255)"`
-    Furniture   *Furniture `orm:"rel(fk)"`
+    Furniture   *Furniture `orm:"rel(fk)" json:"-"`
+    FurnitureID int        `orm:"-" json:"furniture_id"`
 }
 
 

@@ -4,8 +4,9 @@ import "github.com/astaxie/beego/orm"
 
 type FurnitureMaterial struct {
     Id           int `orm:"auto"`
-    Furniture    *Furniture `orm:"rel(fk)"`
+    Furniture    *Furniture `orm:"rel(fk)" json:"-"`
     Material     *Material `orm:"rel(fk)"`
+    FurnitureID  int        `orm:"-" json:"furniture_id"`
 }
 
 
