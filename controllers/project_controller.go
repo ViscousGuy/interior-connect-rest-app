@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -13,6 +12,20 @@ import (
 
 type ProjectController struct {
 	web.Controller
+}
+
+// Define CustomProject struct
+type CustomProject struct {
+    Id            int    `orm:"auto"`
+    ProjectName   string `orm:"size(255)"`
+    Description   string `orm:"size(255)"`
+    City          string `orm:"size(50)"`
+    Slug          string `orm:"size(255);unique"`
+    Display       bool   `orm:"null"`
+    Contractor  *models.Contractor  `orm:"rel(fk)"`
+    ProjectImage []*models.ProjectImage `orm:"reverse(many)"`
+    // New 
+    Furniture []*models.Furniture `orm:"reverse(many)"`
 }
 
 func (fc *ProjectController) GetAllProjects() {
@@ -34,17 +47,10 @@ func (fc *ProjectController) GetAllProjects() {
 
 	// Database operation
 	o := orm.NewOrm()
-	var allProject []models.Project
 
+	var allProjects []models.Project
 
-    // Relationa with other Tables (Contractor , ProjectImage)
-	// _, err = o.QueryTable(new(models.Project)).RelatedSel("Contractor" , "ProjectImage").Limit(limit, (page-1)*limit).All(&allProject)
-	
-    
-    // This RelatedSel works with FK 
-    _, err = o.QueryTable(new(models.Project)).RelatedSel("Contractor").All(&allProject)
-    
-  
+	_, err = o.QueryTable(new(models.Project)).RelatedSel("Contractor").All(&allProjects)
 	if err != nil {
 		log.Printf("Database error: %s", err)
 		fc.Ctx.Output.SetStatus(http.StatusInternalServerError)
@@ -52,15 +58,10 @@ func (fc *ProjectController) GetAllProjects() {
 		fc.ServeJSON()
 		return
 	} else {
-        fmt.Println()
-        fmt.Println(allProject)
-        fmt.Println()
 
-
-        // Extracting all info from Other Table where ProjectID used as FK
-        // ProjectImage
-        for i:= range allProject{
-            _ , err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID",allProject[i].Id).All(&allProject[i].ProjectImage)
+        //Project Images
+        for i:= range allProjects{
+            _ , err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID",allProjects[i].Id).All(&allProjects[i].ProjectImage)
 
             if err != nil{
                 fc.Ctx.Output.SetStatus(500)
@@ -70,25 +71,81 @@ func (fc *ProjectController) GetAllProjects() {
             }
 
             // set the ProjectId  field for each ProjectImage object
-            for j:= range allProject[i].ProjectImage{
-                allProject[i].ProjectImage[j].ProjectId = allProject[i].Id
+            for j:= range allProjects[i].ProjectImage{
+                allProjects[i].ProjectImage[j].ProjectId = allProjects[i].Id
             }
 
             // Check if result is empty
-            if len(allProject) == 0 {
+            if len(allProjects) == 0 {
                 fc.Ctx.Output.SetStatus(http.StatusNotFound)
                 fc.Data["json"] = map[string]string{"message": "No Project found"}
                 fc.ServeJSON()
                 return
             }
-
-        // Success response
         }
-        fc.Data["json"] = allProject
-        
-    }
-    fc.ServeJSON()
+		// Prepare response
+		responseProjects := make([]map[string]interface{}, len(allProjects))
+
+		for i, project := range allProjects {
+			// Create a new CustomProject and copy the fields from project
+			customProject := CustomProject{
+				Id:            project.Id,
+				ProjectName:   project.ProjectName,
+				Description:   project.Description,
+				City:          project.City,
+				Slug:          project.Slug,
+				Display:       project.Display,
+				Contractor:    project.Contractor,
+				ProjectImage:  project.ProjectImage,
+			}
+
+
+			// Loading Furniture Data
+			_, err = o.QueryTable("furniture").RelatedSel("Contractor").Filter("Contractor__ID", project.Contractor.Id).All(&customProject.Furniture)
+			if err != nil {
+				fc.Ctx.Output.SetStatus(500)
+				fc.Data["json"] = map[string]interface{}{"error": "Failed to load furniture materials"}
+				fc.ServeJSON()
+				return
+			}
+            // Prepare furniture response
+			responseFurniture := make([]map[string]interface{}, len(customProject.Furniture))
+			for j, furniture := range customProject.Furniture {
+				responseFurniture[j] = map[string]interface{}{
+					"id":          furniture.Id,
+					"name":        furniture.Name,
+					"description": furniture.Description,
+					"dimensions":  furniture.Dimensions,
+					"price":       furniture.Price,
+					"slug":        furniture.Slug,
+					"display":     furniture.Display,
+				}
+			}
+
+
+            // Prepare project response
+			responseProjects[i] = map[string]interface{}{
+				"id":          customProject.Id,
+				"projectName": customProject.ProjectName,
+				"description": customProject.Description,
+				"city":        customProject.City,
+				"slug":        customProject.Slug,
+				"display":     customProject.Display,
+                "projectImage": customProject.ProjectImage,
+				"furniture":   responseFurniture,
+				"contractor" : customProject.Contractor,
+			}
+
+
+		}
+
+		// Success response
+		fc.Data["json"] = responseProjects
+	}
+	fc.ServeJSON()
 }
+
+
 
 
 
@@ -121,7 +178,7 @@ func (fc *ProjectController) GetProjectBySlug() {
         return
     }
 
-    //  Adding Related Path
+    // ProjectImage
     _ , err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID",project.Id).All(&project.ProjectImage)
     if err != nil {
 		fc.Ctx.Output.SetStatus(500)
@@ -130,11 +187,69 @@ func (fc *ProjectController) GetProjectBySlug() {
 		return
 	}
 
-    // ?? setting the ProjectId field for each ProjectImage object
+    //  setting the ProjectId field for each ProjectImage object
     for j:= range project.ProjectImage{project.ProjectImage[j].ProjectId = project.Id}
 
-    fc.Data["json"] = project
+
+    // Create a new CustomProject and copy the fields from project
+    customProject := CustomProject{
+        Id:            project.Id,
+        ProjectName:   project.ProjectName,
+        Description:   project.Description,
+        City:          project.City,
+        Slug:          project.Slug,
+        Display:       project.Display,
+        Contractor:    project.Contractor,
+        ProjectImage:  project.ProjectImage,
+    }
+
+    // Loading Furniture Data
+    _, err = o.QueryTable("furniture").RelatedSel("Contractor").Filter("Contractor__ID", project.Contractor.Id).All(&customProject.Furniture)
+    if err != nil {
+		fc.Ctx.Output.SetStatus(500)
+		fc.Data["json"] = map[string]interface{}{"error": "Failed to load furniture materials"}
+		fc.ServeJSON()
+		return
+	}
+
+    // Prepare furniture response
+    responseFurniture := make([]map[string]interface{}, len(customProject.Furniture))
+    for j, furniture := range customProject.Furniture {
+        responseFurniture[j] = map[string]interface{}{
+            "id":          furniture.Id,
+            "name":        furniture.Name,
+            "description": furniture.Description,
+            "dimensions":  furniture.Dimensions,
+            "price":       furniture.Price,
+            "slug":        furniture.Slug,
+            "display":     furniture.Display,
+        }
+    }
+
+    // Prepare project image response
+    responseProjectImages := make([]map[string]interface{}, len(customProject.ProjectImage))
+    for j, projectImage := range customProject.ProjectImage {
+        responseProjectImages[j] = map[string]interface{}{
+            "id":         projectImage.Id,
+            "imagePath":  projectImage.ImagePath,
+            "display":    projectImage.Display,
+            "projectId":  projectImage.ProjectId,
+        }
+    }
+
+    // Prepare project response
+    responseProject := map[string]interface{}{
+        "id":           customProject.Id,
+        "projectName":  customProject.ProjectName,
+        "description":  customProject.Description,
+        "city":         customProject.City,
+        "slug":         customProject.Slug,
+        "display":      customProject.Display,
+        "furniture":    responseFurniture,
+        "projectImage": responseProjectImages,  // Add this line
+        "contractor" : customProject.Contractor,
+    }
+
+    fc.Data["json"] = responseProject
     fc.ServeJSON()
-
 }
-
