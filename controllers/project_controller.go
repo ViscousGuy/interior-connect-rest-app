@@ -1,7 +1,8 @@
-// controllers/furniture_controller.go
+// controllers\project_controller.go
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -34,34 +35,76 @@ func (fc *ProjectController) GetAllProjects() {
 	// Database operation
 	o := orm.NewOrm()
 	var allProject []models.Project
-	_, err = o.QueryTable(new(models.Project)).Limit(limit, (page-1)*limit).All(&allProject)
+
+
+    // Relationa with other Tables (Contractor , ProjectImage)
+	// _, err = o.QueryTable(new(models.Project)).RelatedSel("Contractor" , "ProjectImage").Limit(limit, (page-1)*limit).All(&allProject)
+	
+    
+    // This RelatedSel works with FK 
+    _, err = o.QueryTable(new(models.Project)).RelatedSel("Contractor").All(&allProject)
+    
+  
 	if err != nil {
 		log.Printf("Database error: %s", err)
 		fc.Ctx.Output.SetStatus(http.StatusInternalServerError)
 		fc.Data["json"] = map[string]string{"error": "Database error: " + err.Error()}
 		fc.ServeJSON()
 		return
-	}
+	} else {
+        fmt.Println()
+        fmt.Println(allProject)
+        fmt.Println()
 
-	// Check if result is empty
-	if len(allProject) == 0 {
-		fc.Ctx.Output.SetStatus(http.StatusNotFound)
-		fc.Data["json"] = map[string]string{"message": "No Project found"}
-		fc.ServeJSON()
-		return
-	}
 
-	// Success response
-	fc.Data["json"] = allProject
-	fc.ServeJSON()
+        // Extracting all info from Other Table where ProjectID used as FK
+        for i:= range allProject{
+            _ , err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID",allProject[i].Id).All(&allProject[i].ProjectImage)
+
+            if err != nil{
+                fc.Ctx.Output.SetStatus(500)
+				fc.Data["json"] = map[string]interface{}{"error": "Failed to load furniture materials"}
+				fc.ServeJSON()
+				return
+            }
+
+            // set the ProjectId  filed for each ProjectImage object
+            for j:= range allProject[i].ProjectImage{
+                allProject[i].ProjectImage[j].ProjectId = allProject[i].Id
+            }
+
+            // Check if result is empty
+            if len(allProject) == 0 {
+                fc.Ctx.Output.SetStatus(http.StatusNotFound)
+                fc.Data["json"] = map[string]string{"message": "No Project found"}
+                fc.ServeJSON()
+                return
+            }
+
+        // Success response
+        }
+        fc.Data["json"] = allProject
+        
+    }
+    fc.ServeJSON()
 }
+
+
+
+
+
+
+
+
 
 func (fc *ProjectController) GetProjectBySlug() {
     slug := fc.Ctx.Input.Param(":slug")
     // Database operation
     o := orm.NewOrm()
-    var project models.Project
-    err := o.QueryTable(new(models.Project)).Filter("slug", slug).One(&project)
+
+    var project models.Project // to store data of single
+    
+    err := o.QueryTable(new(models.Project)).RelatedSel("Contractor").Filter("slug", slug).One(&project)
     if err != nil {
         log.Printf("Database error: %s", err)
         fc.Ctx.Output.SetStatus(http.StatusInternalServerError)
@@ -76,6 +119,18 @@ func (fc *ProjectController) GetProjectBySlug() {
         fc.ServeJSON()
         return
     }
+
+    //  Adding Related Path
+    _ , err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID",project.Id).All(&project.ProjectImage)
+    if err != nil {
+		fc.Ctx.Output.SetStatus(500)
+		fc.Data["json"] = map[string]interface{}{"error": "Failed to load furniture materials"}
+		fc.ServeJSON()
+		return
+	}
+
+    // ?? setting the ProjectId field for each ProjectImage object
+    for j:= range project.ProjectImage{project.ProjectImage[j].ProjectId = project.Id}
 
     fc.Data["json"] = project
     fc.ServeJSON()
