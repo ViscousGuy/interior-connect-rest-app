@@ -17,6 +17,10 @@ type Contractor struct {
     Active    bool
     Display   bool
     
+    //Removed
+    // Furniture []*Furniture `orm:"reverse(many)"`
+    // Project   []*Project `orm:"reverse(many)"`
+    
 }
 
 func (c *Contractor) TableName() string {
