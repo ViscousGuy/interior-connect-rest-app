@@ -27,7 +27,9 @@ cp .env.example .env
 ```bash
 go run main.go
 ```
+# Documentation 
 
+You can find the documentation [on this website](https://documenter.getpostman.com/view/34685195/2sA3JKehv9).
 # Routes
 
 The application defines the following routes:
