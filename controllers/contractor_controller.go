@@ -19,6 +19,26 @@ type ContractorController struct {
 	web.Controller
 }
 
+// defining MyCustom struc
+
+type MyCustomContractor struct{
+	Id        int    `orm:"auto"`
+    Firstname string `orm:"size(255)"`
+    Lastname  string `orm:"size(255)"`
+    City      string `orm:"size(50)"`
+    State     string `orm:"size(50)"`
+    Mobile    string `orm:"size(15)"`
+    Email     string `orm:"size(255);unique"`
+    Slug      string `orm:"size(255);unique"`
+    Pincode   string `orm:"size(10)"`
+    Verified  bool
+    Active    bool
+    Display   bool
+    // New Fields
+    Furniture []*models.Furniture `orm:"reverse(many)"`
+    Project   []*models.Project  `orm:"reverse(many)"`
+}
+
 func (fc *ContractorController) GetAllContractors() {
 	// Parse query parameters for pagination
 	page, err := fc.GetInt("page", 1)
@@ -41,7 +61,7 @@ func (fc *ContractorController) GetAllContractors() {
 
 	var allContractors []models.Contractor
 
-	_, err = o.QueryTable(new(models.Contractor)).Limit(limit, (page-1)*limit).All(&allContractors)
+    _, err = o.QueryTable(new(models.Contractor)).Limit(limit, (page-1)*limit).All(&allContractors) 
 	if err != nil {
 		log.Printf("Database error: %s", err)
 		fc.Ctx.Output.SetStatus(http.StatusInternalServerError)
@@ -53,8 +73,24 @@ func (fc *ContractorController) GetAllContractors() {
 		responseContractors := make([]map[string]interface{}, len(allContractors))
 
 		for i, contractor := range allContractors {
+			// Create a new MyCustomContractor and copy the fields from contractor
+			customContractor := MyCustomContractor{
+				Id: contractor.Id,
+				Firstname: contractor.Firstname,
+				Lastname: contractor.Lastname,
+				City: contractor.City,
+				State: contractor.State,
+				Mobile: contractor.Mobile,
+				Email: contractor.Email,
+				Slug: contractor.Slug,
+				Pincode: contractor.Pincode,
+				Verified: contractor.Verified,
+				Active: contractor.Active,
+				Display: contractor.Display,
+			}
+
 			// Loading Furniture Data
-			_, err = o.QueryTable("furniture").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&contractor.Furniture)
+			_, err = o.QueryTable("furniture").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&customContractor.Furniture)
 			if err != nil {
 				fc.Ctx.Output.SetStatus(500)
 				fc.Data["json"] = map[string]interface{}{"error": "Failed to load furniture materials"}
@@ -63,8 +99,8 @@ func (fc *ContractorController) GetAllContractors() {
 			}
 
 			// Prepare furniture response
-			responseFurniture := make([]map[string]interface{}, len(contractor.Furniture))
-			for j, furniture := range contractor.Furniture {
+			responseFurniture := make([]map[string]interface{}, len(customContractor.Furniture))
+			for j, furniture := range customContractor.Furniture {
 				responseFurniture[j] = map[string]interface{}{
 					"id":          furniture.Id,
 					"name":        furniture.Name,
@@ -77,7 +113,7 @@ func (fc *ContractorController) GetAllContractors() {
 			}
 
 			// Loading Project Data
-			_, err = o.QueryTable("project").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&contractor.Project)
+			_, err = o.QueryTable("project").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&customContractor.Project)
 			if err != nil {
 				fc.Ctx.Output.SetStatus(500)
 				fc.Data["json"] = map[string]interface{}{"error": "Failed to load project data"}
@@ -86,8 +122,8 @@ func (fc *ContractorController) GetAllContractors() {
 			}
 
 			// Prepare project response
-			responseProjects := make([]map[string]interface{}, len(contractor.Project))
-			for k, project := range contractor.Project {
+			responseProjects := make([]map[string]interface{}, len(customContractor.Project))
+			for k, project := range customContractor.Project {
 				responseProjects[k] = map[string]interface{}{
 					"id":          project.Id,
 					"name":        project.ProjectName,
@@ -100,18 +136,18 @@ func (fc *ContractorController) GetAllContractors() {
 
 			// Prepare contractor response
 			responseContractors[i] = map[string]interface{}{
-				"id":         contractor.Id,
-				"firstname":  contractor.Firstname,
-				"lastname":   contractor.Lastname,
-				"city":       contractor.City,
-				"state":      contractor.State,
-				"mobile":     contractor.Mobile,
-				"email":      contractor.Email,
-				"slug":       contractor.Slug,
-				"pincode":    contractor.Pincode,
-				"verified":   contractor.Verified,
-				"active":     contractor.Active,
-				"display":    contractor.Display,
+				"id":         customContractor.Id,
+				"firstname":  customContractor.Firstname,
+				"lastname":   customContractor.Lastname,
+				"city":       customContractor.City,
+				"state":      customContractor.State,
+				"mobile":     customContractor.Mobile,
+				"email":      customContractor.Email,
+				"slug":       customContractor.Slug,
+				"pincode":    customContractor.Pincode,
+				"verified":   customContractor.Verified,
+				"active":     customContractor.Active,
+				"display":    customContractor.Display,
 				"furniture":  responseFurniture,
 				"projects":   responseProjects,
 			}
@@ -140,8 +176,11 @@ func (fc *ContractorController) GetAllContractors() {
 
 func (fc *ContractorController) GetContractorBySlug() {
 	slug := fc.Ctx.Input.Param(":slug")
+
 	o := orm.NewOrm()
+
     var contractor models.Contractor
+
 	err := o.QueryTable(new(models.Contractor)).Filter("slug", slug).One(&contractor)
 	if err != nil {
         log.Printf("Database error: %s", err)
@@ -156,9 +195,25 @@ func (fc *ContractorController) GetContractorBySlug() {
         fc.ServeJSON()
         return
     }
+	// Create a new MyCustomContractor and copy the fields from contractor
+	customContractor := MyCustomContractor{
+		Id: contractor.Id,
+		Firstname: contractor.Firstname,
+		Lastname: contractor.Lastname,
+		City: contractor.City,
+		State: contractor.State,
+		Mobile: contractor.Mobile,
+		Email: contractor.Email,
+		Slug: contractor.Slug,
+		Pincode: contractor.Pincode,
+		Verified: contractor.Verified,
+		Active: contractor.Active,
+		Display: contractor.Display,
+	}
+
 
 	// Loading Furniture Data
-	_, err = o.QueryTable("furniture").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&contractor.Furniture)
+	_, err = o.QueryTable("furniture").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&customContractor.Furniture)
 	if err != nil {
 		fc.Ctx.Output.SetStatus(500)
 		fc.Data["json"] = map[string]interface{}{"error": "Failed to load furniture materials"}
@@ -167,8 +222,8 @@ func (fc *ContractorController) GetContractorBySlug() {
 	}
 
 	// Prepare furniture response
-	responseFurniture := make([]map[string]interface{}, len(contractor.Furniture))
-	for j, furniture := range contractor.Furniture {
+	responseFurniture := make([]map[string]interface{}, len(customContractor.Furniture))
+	for j, furniture := range customContractor.Furniture {
 		responseFurniture[j] = map[string]interface{}{
 			"id":          furniture.Id,
 			"name":        furniture.Name,
@@ -181,7 +236,7 @@ func (fc *ContractorController) GetContractorBySlug() {
 	}
 
 	// Loading Project Data
-	_, err = o.QueryTable("project").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&contractor.Project)
+	_, err = o.QueryTable("project").RelatedSel("Contractor").Filter("Contractor__ID", contractor.Id).All(&customContractor.Project)
 	if err != nil {
 		fc.Ctx.Output.SetStatus(500)
 		fc.Data["json"] = map[string]interface{}{"error": "Failed to load project data"}
@@ -190,8 +245,8 @@ func (fc *ContractorController) GetContractorBySlug() {
 	}
 
 	// Prepare project response
-	responseProjects := make([]map[string]interface{}, len(contractor.Project))
-	for k, project := range contractor.Project {
+	responseProjects := make([]map[string]interface{}, len(customContractor.Project))
+	for k, project := range customContractor.Project {
 		responseProjects[k] = map[string]interface{}{
 			"id":          project.Id,
 			"name":        project.ProjectName,
@@ -204,18 +259,18 @@ func (fc *ContractorController) GetContractorBySlug() {
 
 	// Prepare contractor response
 	responseContractor := map[string]interface{}{
-		"id":         contractor.Id,
-		"firstname":  contractor.Firstname,
-		"lastname":   contractor.Lastname,
-		"city":       contractor.City,
-		"state":      contractor.State,
-		"mobile":     contractor.Mobile,
-		"email":      contractor.Email,
-		"slug":       contractor.Slug,
-		"pincode":    contractor.Pincode,
-		"verified":   contractor.Verified,
-		"active":     contractor.Active,
-		"display":    contractor.Display,
+		"id":         customContractor.Id,
+		"firstname":  customContractor.Firstname,
+		"lastname":   customContractor.Lastname,
+		"city":       customContractor.City,
+		"state":      customContractor.State,
+		"mobile":     customContractor.Mobile,
+		"email":      customContractor.Email,
+		"slug":       customContractor.Slug,
+		"pincode":    customContractor.Pincode,
+		"verified":   customContractor.Verified,
+		"active":     customContractor.Active,
+		"display":    customContractor.Display,
 		"furniture":  responseFurniture,
 		"projects":   responseProjects,
 	}
