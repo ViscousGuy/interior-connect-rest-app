@@ -124,6 +124,26 @@ func (fc *ContractorController) GetAllContractors() {
 			// Prepare project response
 			responseProjects := make([]map[string]interface{}, len(customContractor.Project))
 			for k, project := range customContractor.Project {
+				// Loading Project Image Data
+				var projectImages []*models.ProjectImage
+				_, err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID", project.Id).All(&projectImages)
+				if err != nil {
+					fc.Ctx.Output.SetStatus(500)
+					fc.Data["json"] = map[string]interface{}{"error": "Failed to load project image data"}
+					fc.ServeJSON()
+					return
+				}
+
+				// Prepare project image response
+				responseImages := make([]map[string]interface{}, len(projectImages))
+				for l, image := range projectImages {
+					responseImages[l] = map[string]interface{}{
+						"id":        image.Id,
+						"imagePath": image.ImagePath,
+						"display":   image.Display,
+					}
+				}
+
 				responseProjects[k] = map[string]interface{}{
 					"id":          project.Id,
 					"name":        project.ProjectName,
@@ -131,6 +151,7 @@ func (fc *ContractorController) GetAllContractors() {
 					"city":        project.City,
 					"slug":        project.Slug,
 					"display":     project.Display,
+					"images":      responseImages,  // Add images to the project response
 				}
 			}
 
@@ -247,6 +268,26 @@ func (fc *ContractorController) GetContractorBySlug() {
 	// Prepare project response
 	responseProjects := make([]map[string]interface{}, len(customContractor.Project))
 	for k, project := range customContractor.Project {
+		// Loading Project Image Data
+		var projectImages []*models.ProjectImage
+		_, err = o.QueryTable("project_image").RelatedSel("Project").Filter("Project__ID", project.Id).All(&projectImages)
+		if err != nil {
+			fc.Ctx.Output.SetStatus(500)
+			fc.Data["json"] = map[string]interface{}{"error": "Failed to load project image data"}
+			fc.ServeJSON()
+			return
+		}
+
+		// Prepare project image response
+		responseImages := make([]map[string]interface{}, len(projectImages))
+		for l, image := range projectImages {
+			responseImages[l] = map[string]interface{}{
+				"id":        image.Id,
+				"imagePath": image.ImagePath,
+				"display":   image.Display,
+			}
+		}
+
 		responseProjects[k] = map[string]interface{}{
 			"id":          project.Id,
 			"name":        project.ProjectName,
@@ -254,6 +295,7 @@ func (fc *ContractorController) GetContractorBySlug() {
 			"city":        project.City,
 			"slug":        project.Slug,
 			"display":     project.Display,
+			"images":      responseImages,  // Add images to the project response
 		}
 	}
 
