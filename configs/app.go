@@ -23,7 +23,7 @@ func init() {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	// Construct connection string 
+	// Construct connection string
 	connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&loc=Local",
 		dbUser, dbPass, dbHost, dbPort, dbName,
 	)
@@ -34,14 +34,14 @@ func init() {
 	// Register the database connection
 	err = orm.RegisterDataBase("default", "mysql", connStr)
 	if err != nil {
-		panic(fmt.Errorf("error registering database: %s", err)) 
+		panic(fmt.Errorf("error registering database: %s", err))
 	}
 	// Test Connection
-	o := orm.NewOrm() 
+	o := orm.NewOrm()
 	if err := o.Using("default"); err != nil {
-		panic(fmt.Errorf("failed to connect to the database: %s", err)) 
+		panic(fmt.Errorf("failed to connect to the database: %s", err))
 	} else {
 		fmt.Println("Database connection established successfully!")
 	}
-	orm.Debug = true 
+	orm.Debug = false
 }
